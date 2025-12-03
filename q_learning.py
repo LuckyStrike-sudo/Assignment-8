@@ -1,7 +1,6 @@
 #Caedmon Boutwell 1001988638
 import numpy as np
 
-
 def read_file(file):
     arr = []
     f = open(file, 'r')
@@ -11,132 +10,140 @@ def read_file(file):
 
     return arr
 
-def value_iteration(environment_file, non_terminal_reward, gamma, K):
-    S = read_file(environment_file)
-    S = np.array(S)
-    valueIteration(S, None, non_terminal_reward, gamma, K)
+def eta(N):
+    return 20/(19+N)
 
-def print_utilities(dict, S):
-    print("utilities:")
-    for i, r in enumerate(S):
-        for j, c in enumerate(r):
-            if c == "X":
-                print(" 0.000", end= " ")
-            else:
-                print("%6.3f" % dict[(i,j)], end=" ")
-        print("")
-
-def print_policy(dict, S):
-    print("\npolicy:")
-    for i, r in enumerate(S):
-        for j, c in enumerate(r):
-            print("%6s" % dict[(i,j)], end=" ")
-        print("")
-
-
-def maxUtility(U, s, terminals, policy):
+def f_function(Q, N, Ne, s):
     x, y = s
-    #Utiltiy of the space to the left
-    if (x-1, y) in U:
-        if U[(x-1, y)] != "X":
-            if (x-1, y) in terminals:
-                u_up = terminals[(x-1,y)]
-            else:
-                u_up = U[(x-1, y)]
+    max_action = None
+    val_up, val_down, val_left, val_right = 0
+    if (s, "up") in Q:
+        if N[s, "up"] < Ne:
+            val_up = 1
         else:
-            u_up = U[s]
-    else:
-        u_up = U[s]
+            val_up = Q[s, "up"]
 
-    #utility of the sapce up
-    if (x, y-1) in U:
-        if U[(x, y-1)] != "X":
-            if (x, y-1) in terminals:
-                u_left = terminals[(x, y-1)]
-            else:
-                u_left = U[(x, y-1)]
+    if (s, "down") in Q:
+        if N[s, "down"] < Ne:
+            val_down = 1
         else:
-            u_left = U[s]
-    else:
-        u_left = U[s]
-    
-    #Utility of the space to the right
-    if (x+1, y) in U:
-        if U[(x+1, y)] != "X":
-            if (x+1, y) in terminals:
-                u_down = terminals[(x+1, y)]
-            else:
-                u_down = U[(x+1, y)]
+            val_val_downup = Q[s, "down"]
+
+    if (s, "left") in Q:
+        if N[s, "left"] < Ne:
+            val_left = 1
         else:
-            u_down = U[s]
-    else:
-        u_down = U[s]
+            val_left = Q[s, "left"]
 
-    #utility of the space down
-    if (x, y+1) in U:
-        if U[(x, y+1)] != "X":
-            if (x, y+1) in terminals:
-                u_right = terminals[(x, y+1)]
-            else:
-                u_right = U[(x, y+1)]
+    if (s, "right") in Q:
+        if N[s, "right"] < Ne:
+            val_right = 1
         else:
-            u_right = U[s]
+            val_right = Q[s, "right"]
+            
+    move = max(val_up, val_down, val_left, val_right)
+    if move == val_up:
+        return "up"
+        s_prime = (x, y-1)
+    elif move == val_down:
+        return "down"
+        s_prime = (x, y+1)
+    elif move == val_left:
+        return "left"
+        s_prime = (x+1, y)
     else:
-        u_right = U[s]
+        return "right"
+        s_prime = (x-1, y)
 
-    move_up = .8*u_up + .1*u_left + .1*u_right
-    move_left = .8*u_left + .1*u_up + .1*u_down
-    move_right = .8*u_right + .1*u_up + .1*u_down
-    move_down = .8*u_down + .1*u_right + .1*u_right
-    move = max(move_up, move_left, move_down, move_right)
-    if move == move_up:
-        policy[s] = "^"
-    elif move == move_down:
-        policy[s] = "v"
-    elif move == move_left:
-        policy[s] = "<"
-    elif move == move_right:
-        policy[s] = ">"
 
-    return move
+def ExecuteAction(a, s):
     
 
-def valueIteration(S, A, R, gamma, K):
-    N = len(S.flatten())
-    U_prime = {}
-    terminals = {}
-    policy = {}
-    for i, r in enumerate(S):
-        for j, c in enumerate(r):
-            if c != "." and c != "X":
-                U_prime[(i,j)] = float(c)
-                terminals[(i,j)] = float(c)
-                policy[(i,j)] = "o"
-            elif c == ".":
-                U_prime[(i,j)] = 0.0
-                policy[(i,j)] = "."
-            else:
-                U_prime[(i,j)] = c
-                policy[(i,j)] = c
 
-    for i in range(0, K-1):
-        U = U_prime
-        delta = 0
-        for i, r in enumerate(S):
-            for j, c in enumerate(r):
-                if (i, j) in terminals:
-                    U_prime[(i,j)] = terminals[(i,j)]
-                elif U[(i,j)] == 'X':
-                    continue
-                else:
-                    U_prime[(i,j)] = R + gamma*maxUtility(U, (i,j), terminals, policy)
-                if abs(U_prime[(i,j)] - U[(i,j)]) > delta:
-                    delta = abs(U_prime[(i,j)] - U[(i,j)])
 
-    print_utilities(U_prime, S)
-    print_policy(policy, S)
+def maxQ():
+    
+    return 
 
+
+"""
+This should be correct
+I need to make sure that the maxQ() function works with the current code. I can test this when I finish the main loop
+"""
+
+def Q_Learning_Update(s, r, a, s_prime, r_prime, gamma, eta, Q, N, terminals):
+    if s_prime in terminals:
+        Q[(s_prime, None)] = r_prime
+    if s is not None:
+        if (s,a) in N:
+            N[(s,a)] += 1
+        else:
+            N[(s,a)] = 1
+        
+        c = eta(N[(s,a)])
+
+    if (s,a) not in Q[(s,a)]:
+        Q[(s,a)] = 0.0
+
+    Q[(s, a)] = (1-c)*Q[(s,a)] + c(r + gamma*maxQ(Q, s_prime, terminals))
+    return
 
 def AgentModel_Q_Learning(environment_file, non_terminal_reward, gamma, number_of_moves, Ne):
-    value_iteration(environment_file, non_terminal_reward, gamma, 50)
+    S = np.array(read_file(environment_file))
+    print(S)
+
+    world = {}
+    Q = {}
+    terminals = {}
+    N = {}
+    #Implements the world
+    for i, r in enumerate(S):
+        for j, c in enumerate(r):
+            c = c.replace(" ", "")
+            if c == "I":
+                world[(i,j)] = c
+            elif c != "." and c != "X":
+                world[(i,j)] = float(c)
+                terminals[(i,j)] = float(c)
+            elif c == ".":
+                world[(i,j)] = 0.0
+            else:
+                world[(i,j)] = c
+
+            N[(i,j), None] = 0
+
+    print(N)
+
+    #Initial values
+    s_prime = next(k for k, v in world.items() if v=="I")
+    s = None
+    r = None
+    a = None
+    Ne = None
+
+    #Runs until num moves is done
+    """
+        Need to finish implementing this
+        I am unsure what N is and I still need to add the f function
+        I also need to adjust the termination criterion and probably the loop
+        Make sure we apss the correct number of variables to the Q_Learning_Update function
+    """
+        
+    for i in range(1, number_of_moves):
+        r_prime = non_terminal_reward
+        Q_Learning_Update(s, r, a, s_prime, r_prime, gamma, )
+        if i == 5:
+            Ne = N[s, a]
+        if s_prime in terminals:
+            s_prime = next(k for k, v in world.items() if v=="I")
+            s = None
+            r = None
+            a = None
+            Ne = None
+        a = f_function(Q, N, Ne)
+
+        
+
+    print(terminals)
+
     return 
