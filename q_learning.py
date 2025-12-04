@@ -44,20 +44,29 @@ def f_function(Q, N, Ne, s):
     move = max(val_up, val_down, val_left, val_right)
     if move == val_up:
         return "up"
-        s_prime = (x, y-1)
     elif move == val_down:
         return "down"
-        s_prime = (x, y+1)
     elif move == val_left:
         return "left"
-        s_prime = (x+1, y)
-    else:
+    elif move == val_right:
         return "right"
-        s_prime = (x-1, y)
-
+    else:
+        print("ERROR IN F FUNCTION")
+        return
 
 def ExecuteAction(a, s):
-    
+    x, y = s
+    match a:
+        case "up":
+            return (x, y-1)
+        case "down":
+            return (x, y+1)
+        case "left":
+            return (x+1, y)
+        case "right:":
+            return (x-1, y)
+        case _:
+            print("ERROR EXECUTE ACTION")
 
 
 
@@ -141,6 +150,10 @@ def AgentModel_Q_Learning(environment_file, non_terminal_reward, gamma, number_o
             a = None
             Ne = None
         a = f_function(Q, N, Ne)
+        new_s = ExecuteAction(a, s_prime)
+        s = s_prime
+        s_prime = new_s
+        r = r_prime
 
         
 
